@@ -1,0 +1,42 @@
+<html>
+<head>
+  <title>go webassembly - words</title>
+  <script src="wasm_exec.js"></script>
+  <script>
+    if (!WebAssembly.instantiateStreaming) {
+      // polyfill
+      WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer();
+        return await WebAssembly.instantiate(source, importObject);
+      };
+    }
+
+    const go = new Go();
+    let mod, inst;
+    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then(
+            async result => {
+              mod = result.module;
+              inst = result.instance;
+              await go.run(inst);
+            }
+    );
+
+    function render() {
+      replay(null);
+    }
+  </script>
+  <style>
+    *{
+      margin: 0;
+
+    }
+    canvas{
+      position: fixed;
+    }
+  </style>
+</head>
+<body>
+<canvas onclick="render()" id="sCanvas"></canvas>
+<canvas onclick="render()" id="wCanvas"></canvas>
+</body>
+</html>
